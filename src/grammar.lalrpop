@@ -1,0 +1,32 @@
+use std::str::FromStr;
+use lalrpop_util::ParseError;
+use crate::syntax_tree;
+
+
+#[LALR]
+grammar;
+
+pub Fractran: syntax_tree::FractranInput = {
+    <(InitialValue)> <(FractionValues)> => syntax_tree::FractranInput::new(<>)
+} 
+
+InitialValue: u128 = {
+    ("init" <Number>)
+}
+
+FractionValues: Vec<(u128, u128)> = {
+    "list" <FracList>
+}
+
+FracList: Vec<(u128, u128)> = {
+    <(Frac)+>
+}
+
+
+Frac: (u128, u128) = {
+    <Number> <Number>,
+    <Number> "/" <Number>,
+}
+
+
+Number: u128 = <s:r"[0-9]+"> => u128::from_str(s).unwrap();

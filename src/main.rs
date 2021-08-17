@@ -1,82 +1,48 @@
-struct Fraction {
-    numerator: u128,
-    denominator: u128,
+use std::io::Read;
+use std::fs::File;
+use std::path::{Path, PathBuf};
+use structopt::StructOpt;
+
+mod syntax_tree;
+mod engine;
+
+#[macro_use]
+extern crate lalrpop_util;
+lalrpop_mod!(grammar);
+
+#[derive(StructOpt)]
+struct Arguments {
+    file: PathBuf
+}  
+
+
+fn load_file(path: &Path) -> std::io::Result<String> {
+    let mut file = File::open(path)?;
+    let mut buff = String::new();
+    file.read_to_string(&mut buff)?;
+    Ok(buff)
 }
 
-impl Fraction {
-    fn new(n: u128, d: u128) -> Self {
-        Self {
-            numerator: n,
-            denominator: d,
-        }
-    }
 
-    fn try_multiply(&self, n: u128) -> Option<u128> {
-        let rem = n % self.denominator;
-        if rem == 0 {
-            let val = (self.numerator * n) / self.denominator;
-            Some(val)
-        } else {
-            None
-        }
-    }
-}
+fn parse(code: String) -> engine::Engine {
+    let parser = grammar::FractranParser::new();
+    let tree = parser.parse(&code).unwrap();
+    engine::compile(tree)
+}  
 
-struct Engine {
-    code: Vec<Fraction>,
-    current: u128,
-}
 
-enum EngineStatus {
-    Progress,
-    Halt,
-}
+fn main() -> std::io::Result<()> {
 
-impl Engine {
-    fn new(code: Vec<Fraction>, init: u128) -> Self {
-        Self {
-            code,
-            current: init,
-        }
-    }
+    let args = Arguments::from_args();
+    let code = load_file(&args.file)?;
+    let mut engine = parse(code);
 
-    fn step_one(&mut self) -> EngineStatus {
-        for frac in &self.code {
-            if let Some(next) = frac.try_multiply(self.current) {
-                self.current = next;
-                return EngineStatus::Progress;
-            }
-        }
-        EngineStatus::Halt
-    }
-}
-
-fn main() {
-    let fracs = vec![
-        (17, 91),
-        (78, 85),
-        (19, 51),
-        (23, 38),
-        (29, 33),
-        (77, 29),
-        (95, 23),
-        (77, 19),
-        (1, 17),
-        (11, 13),
-        (13, 11),
-        (15, 2),
-        (1, 7),
-        (55, 1),
-    ];
-
-    let code = fracs.into_iter().map(|(n, d)| Fraction::new(n, d)).collect();
-
-    let mut engine = Engine::new(code, 2);
-    for _ in 0..100 {
+    loop {
         println!("{}", engine.current);
-        if let EngineStatus::Halt = engine.step_one() {
+        if let engine::EngineStatus::Halt = engine.step_one() {
             break;
         }
     }
 
+    Ok(())
 }
