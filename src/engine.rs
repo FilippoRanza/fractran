@@ -7,7 +7,9 @@ pub fn compile(tree: syntax_tree::FractranInput) -> Engine {
 }
 
 fn build_fractions(list: &[(u128, u128)]) -> Vec<Fraction> {
-    list.into_iter().map(|(n, d)| Fraction::new(*n, *d)).collect()
+    list.into_iter()
+        .map(|(n, d)| Fraction::new(*n, *d))
+        .collect()
 }
 
 struct Fraction {
