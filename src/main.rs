@@ -14,11 +14,22 @@ pub type SyntaxError<'a> =
     lalrpop_util::ParseError<usize, lalrpop_util::lexer::Token<'a>, &'static str>;
 
 #[derive(StructOpt)]
+#[structopt(about = "FRACTRAN interpreter.")]
 struct Arguments {
+    #[structopt(help = "FRACTRAN source file.")]
     file: PathBuf,
-    #[structopt(short = "-d", long = "--debug", parse(from_flag))]
+    #[structopt(
+        short = "-d",
+        long = "--debug",
+        help = "Enable debug mode: show  current step index and current value at each step on stdout.",
+        parse(from_flag)
+    )]
     debug: bool,
-    #[structopt(short = "-l", long = "--limit")]
+    #[structopt(
+        short = "-l",
+        long = "--limit",
+        help = "Set the max number of steps to run. By default run until halt condition is met."
+    )]
     limit: Option<usize>,
 }
 
