@@ -16,6 +16,10 @@ pub type SyntaxError<'a> =
 #[derive(StructOpt)]
 struct Arguments {
     file: PathBuf,
+    #[structopt(short = "-d", long = "--debug", parse(from_flag))]
+    debug: bool,
+    #[structopt(short = "-l", long = "--limit")]
+    limit: Option<usize>,
 }
 
 fn load_file(path: &Path) -> std::io::Result<String> {
@@ -31,13 +35,13 @@ fn parse(code: &str) -> Result<engine::Engine, SyntaxError> {
     Ok(engine::compile(tree))
 }
 
-fn run(mut engine: engine::Engine) {
-    loop {
-        println!("{}", engine.current);
-        if let engine::EngineStatus::Halt = engine.step_one() {
-            break;
-        }
-    }
+fn run(engine: engine::Engine, debug: bool, limit: Option<usize>) {
+    let out = if debug {
+        engine::debug_program(engine, limit)
+    } else {
+        engine::run_program(engine, limit)
+    };
+    println!("{}", out);
 }
 
 fn main() -> std::io::Result<()> {
@@ -45,7 +49,7 @@ fn main() -> std::io::Result<()> {
     let code = load_file(&args.file)?;
     let compile_res = parse(&code);
     match compile_res {
-        Ok(engine) => run(engine),
+        Ok(engine) => run(engine, args.debug, args.limit),
         Err(err) => error_message::print_error(&args.file, &code, err),
     }
 

@@ -8,7 +8,9 @@ pub fn print_error(file: &Path, code: &str, err: SyntaxError) {
     let builder = match err {
         SyntaxError::ExtraToken {
             token: (begin, _, end),
-        } => MessageBuilder::new_extra_token().add(get_token(code, begin, end)).add(extract_error_code(code, begin, end)),
+        } => MessageBuilder::new_extra_token()
+            .add(get_token(code, begin, end))
+            .add(extract_error_code(code, begin, end)),
         SyntaxError::InvalidToken { location } => {
             MessageBuilder::new_invalid_token().add(make_location_message(code, location))
         }
@@ -60,8 +62,7 @@ impl MessageBuilder {
     }
 
     fn new_unrecognized_token() -> Self {
-        Self::new()
-            .add("Error: Unrecognized token found")
+        Self::new().add("Error: Unrecognized token found")
     }
 
     fn new_user_error() -> Self {
